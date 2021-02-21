@@ -21,45 +21,120 @@
 **切换官方源**
 ```npx nrm use npm```
 
-### **webpack的配置**
+### webpack的配置 **webpack.config.js**
+
+ #### "html-webpack-plugin"
+ npm i tml-webpack-plugin -D
 ```js
-const { resolve } = require('path');
-const htmlWebpackPlugin = require('html-webpack-plugin');
-module.exports = {
-    // 单入口,使用字符串指定一个入口文件,打包一个chunk,输出一个bundle,chunk的名称是默认的
-    // entry: './src/index.js',
-    // Array多入口文件,所有的入口文件形成一个chunk,输出一个bundle,
-    // entry: ['./src/index.js', './src/main.js'],
-    // Object 多入口,有几个入口文件就会生成几个chunk,并输出几个bundle,chunk的名称是key,
-    entry: {
-        one: './src/index.js',
-        two: './src/main.js'
-    },
-    // 特殊有用法
-    // entry: {
-    //     one: ['', ''],
-    //     two: ""
-    // },
-    output: {
-        filename: '[name].js',
-        path: resolve(__dirname, 'build')
-    },
-    module: {
-        rules: []
-    },
-    plugins: [
-        // 默认会创建一个空的,目的就是自动引入打包资源(js/css)
-        new htmlWebpackPlugin({
-            template: "./src/index.html",    //指定html模板文件
-            filename: 'demo.html',           //指定html文件名称
-            minify: {
-                //移除空格
-                collapseWhitespace: true,
-                // 移除注释
-                removeComments: true
-            }
-        }),
-    ],
-    mode: 'production',  // development
-}
+ const htmlWebpackPlugin = require('html-webpack-plugin');
+ plugins: [
+        // 默认会创建一个空的,目的就是自动引入打包资源(js/css)
+        new htmlWebpackPlugin({
+            template: "./src/index.html",    //指定html模板文件
+            filename: 'demo.html',           //指定html文件名称
+            minify: {
+                //移除空格
+                collapseWhitespace: true,
+                // 移除注释
+                removeComments: true
+            }
+        }),
+    ```
+ #### "style-loader" "css-loader" "less-loader"
+ ```js
+
+ module: {
+    rules: [
+            {
+                test: /\.css$/,
+                use: ['style-loader', 'css-loader'],
+            }，
+            {
+                 test: /\.less$/,
+                 use: ['style-loader', 'css-loader', 'less-loader'],
+            }
+        ]
+    }
+
+
+ #### 打包成单独的css文件 "mini-css-extract-plugin" 
+ npm i mini-css-extract-plugin -D
+```js
+const miniCssExtractPlugin = require('mini-css-extract-plugin'); //提取css为单独文件的插件
+
+ module: {
+    rules: [
+            {
+                test: /\.css$/,
+                use: [miniCssExtractPlugin.loader, 'css-loader'],
+            }，
+            {
+                 test: /\.less$/,
+               use: [miniCssExtractPlugin.loader, 'css-loader', 'less-loader'],
+            }
+        ]
+    }
+
+plugins: [new miniCssExtractPlugin()]
 ```
+
+ #### 处理css兼容性 "postcss-loader" "postcss-preset-env"  
+ npm i postcss-loader postcss-preset-env -D
+[postcss.config.js](postcss.config.js)
+```js
+    module: {
+        rules: [
+
+            {
+                test: /\.css$/,
+                // use: ['style-loader', 'css-loader'],
+                use: [miniCssExtractPlugin.loader, 'css-loader', 'postcss-loader'],   //提取css为单独文件
+            },
+            {
+                test: /\.less$/,
+                // use: ['style-loader', 'css-loader', 'less-loader'],
+                use: [miniCssExtractPlugin.loader, 'css-loader', 'less-loader', 'postcss-loader'],//提取css为单独文件
+            }
+        ]
+    },
+
+```
+ #### 压缩css “optimize-css-assets-webpack-plugin"
+ npm i optimize-css-assets-webpack-plugin -D
+```js
+const optimizeCssAssetsWebpackPlugin = require('optimize-css-assets-webpack-plugin')
+plugins: [ new optimizeCssAssetsWebpackPlugin()]
+```
+
+
+#### 打包图片资源
+npm i url-loader file-loader -D
+
+module:{
+    rules:[
+         {
+                test: /\.(png|jpg|gif|jpeg)$/,
+                loader: 'url-loader',
+                options: {
+                    publicPath: './images/',
+                    outputPath: 'images/',//输出目录
+                    limit: 1024 * 8,
+                    name: '[name][hash:5].[ext]' // 设置图片名
+
+                }
+            },
+    ]
+}
+
+
+打包html里的图片资源
+ npm i html-loader -D
+module:{
+    rules:[
+           // 解析html里的图片
+            {
+                test:/\.html$/,
+                loader:'html-loader',
+            }
+    ]
+}
